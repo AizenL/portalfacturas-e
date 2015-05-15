@@ -1,0 +1,21 @@
+Pendientes:
+===========
+
+* Definir los siguientes temas:
+- Cuando se envian los mensajes, considerando que no se tienen los datos de los clientes
+
+* Crear objecto mail.message con la siguiente estructura del archivo "public_mail.message.json"
+
+* Revisar templates de correo ej. addons/auth_signup/auth_signup_data.xml
+* Establecer preferencias por defecto:
+  - Idioma -> español
+  - Zona horaria -> America/Guayaquil
+
+* Envío de correos electrónicos:
+  - Al registrarse
+  - Al ser reseteada la contraseña
+  - Al registrar una nueva factura.
+
+* Crear vista de facturas y cargarlas desde ftp.
+* Dominio basado en vat a registros de factura
+  o registros creados con id 39	2015-05-11 17:21:11.166097	2015-05-11 17:21:48.828894		1	hola	1		1	0	<1431364871.164266109466553.287553943837428-openerp-private@anahita.nodomain>	<p>asdasd</p>			false	2015-05-11 17:21:11.0	3	notification		Administrator <jfinlay@riseup.net>	truedel usuario

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+        <record model='ir.cron' id='cron001'>
+            <field name='name'>Process e-invoices</field>
+            <field name='user_id'>1</field>
+            <field name='active'>0</field>
+            <field name='priority'>5</field>
+            <field name='interval_number'>1</field>
+            <field name='interval_type'>days</field>
+            <field name='numbercall'>-1</field>
+            <field name='model'>mail.message</field>
+            <field name='function'>process_invoices</field>
+            <field name='args'>(False,)</field>
+        </record>
+
+    </data>
+</openerp>
