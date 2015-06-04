@@ -36,4 +36,9 @@ class res_partner(osv.osv):
 
     _sql_constraints = [('unique_vat', 'unique(vat)', 'Ya existe un usuario con esta C.I./R.U.C.')]
 
+    _defaults = {
+        'lang': 'es_ES',
+        'tz': 'America/Guayaquil'
+    }
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

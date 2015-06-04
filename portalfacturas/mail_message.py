@@ -22,9 +22,18 @@ from openerp.osv import osv
 class mail_message(osv.Model):
 
     def process_invoces(self, cr, uid, automatic=False, use_new_cursor=False, context=None):
+        """
+        Cron activity to get all new documents for current users
+        """
+        from ftplib import FTP
+        ftp = FTP()
 
         return {}
 
     def notify_new_invoices(self, cr, uid, automatic=False, use_new_cursor=False, context=None):
-
+        """
+        Notification function
+        """
         return {}
+
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
