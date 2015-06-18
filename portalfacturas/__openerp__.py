@@ -31,7 +31,8 @@ Portal para facturas electronicas.
     'website': '',
     'depends' : ['website'],
     'data': [
-        'views/auth_signup_login.xml'
+        'views/auth_signup_login.xml',
+        'views/ftp_view.xml'
     ],
     'qweb' : [],
     'demo': [],

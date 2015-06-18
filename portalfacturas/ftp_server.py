@@ -15,6 +15,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 from openerp.osv import osv, fields
+import openerp.tools as tools
+
+from ftplib import FTP
 
 class FtpServer(osv.Model):
     """
@@ -24,25 +27,34 @@ class FtpServer(osv.Model):
     _description = 'File Transfer Protocol class'
 
     _columns = {
-        'name': fields.char('Nombre', size=128),
-        'host': fields.char('Host', size=128),
-        'port': fields.integer('Puerto'),
-        'user': fields.char('Usuario', size=128),
-        'pwd': fields.char('Contraseña', size=128),
+        'name': fields.char('Nombre', size=128, required=True),
+        'host': fields.char('Host', size=128, required=True),
+        'port': fields.integer('Puerto', required=True),
+        'user': fields.char('Usuario', size=128, required=True),
+        'pwd': fields.char('Contraseña', size=128, required=True),
+        'active': fields.boolean('Activo'),
     }
 
-    def connect(self, cr, uid, context=None):
-        ftp_obj = self.pool.get('ftp.server')
-        ftp_obj.read(cr, uid, [], context=context)
-        from ftplib import FTP
+    def test(self, cr, uid, ids, context=None):
+        for ftp_server in self.browse(cr, uid, ids, context=context):
+            ftp = False
+            try:
+                ftp = self.connect(ftp_server.host, ftp_server.port,
+                                   ftp_server.user, ftp_server.pwd)
+            except Exception, e:
+                raise osv.except_osv("Connection Test Failed!", "Here is what we got instead:\n %s" % tools.ustr(e))
+            finally:
+                try:
+                    if ftp: ftp.quit()
+                except Exception:
+                    # ignored, just a consequence of the previous exception
+                    pass
+        raise osv.except_osv("Connection Test Succeeded!", "Everything seems properly set up!")
+
+    def connect(self, host, port, user, pwd):
         ftp = FTP()
-        try:
-            ftp.connect(ftp_obj.host, ftp_obj.port)
-            ftp.login(ftp_obj.user, ftp_obj.pwd)
-        except '[Errno 101] Network is unreachable':
-            raise osv.except_osv('Error 101', 'Network is unreachable')
-        except:
-            self.connect(cr, uid, context=context)
+        ftp.connect(host, port)
+        ftp.login(user, pwd)
         return ftp
 
     def walk(self, cr, uid, ruc, context=None):
