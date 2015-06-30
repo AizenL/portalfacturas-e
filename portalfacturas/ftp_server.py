@@ -31,13 +31,15 @@ class FtpServer(osv.Model):
         'host': fields.char('Host', size=128, required=True),
         'port': fields.integer('Puerto', required=True),
         'user': fields.char('Usuario', size=128, required=True),
-        'pwd': fields.char('Contraseña', size=128, required=True),
+        'pwd': fields.char('Contraseña', size=128),
         'active': fields.boolean('Activo'),
     }
 
     def test(self, cr, uid, ids, context=None):
         for ftp_server in self.browse(cr, uid, ids, context=context):
             ftp = False
+            if not ftp_server.active:
+                pass
             try:
                 ftp = self.connect(ftp_server.host, ftp_server.port,
                                    ftp_server.user, ftp_server.pwd)
@@ -57,7 +59,17 @@ class FtpServer(osv.Model):
         ftp.login(user, pwd)
         return ftp
 
-    def walk(self, cr, uid, ruc, context=None):
-        return {}
+    def getfile(self, ftp, filename='log.txt'):
+        file = open(localfile, 'w')
+        ftp.retrbinary('RETR ' + filename, file.write)
+        file.close()
+
+    def putfile(self, ftp, localfile='log.txt', remotefile='log-processed.txt'):
+        storecmd = 'STOR %s' % localfile
+        ftp.storbinary(storecmd, open(remotefile, 'rb'))
+
+    def quit(self, ftp):
+        if ftp:
+            ftp.quit()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

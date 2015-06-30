@@ -2,7 +2,7 @@
 <openerp>
     <data>
 
-        <!-- FTP Form View -->
+        <!-- FTP Tree View -->
         <record model="ir.ui.view" id="view_ftp_tree">
           <field name="name">ftp.tree</field>
           <field name="model">ftp.server</field>
@@ -36,7 +36,7 @@
             </field>
         </record>
 
-        <!-- FTP note  -->
+        <!-- FTP Search -->
         <record model="ir.ui.view" id="view_ftp_filter">
           <field name="name">ftp.search</field>
           <field name="model">ftp.server</field>
@@ -49,7 +49,7 @@
         </record>
 
         <record model="ir.actions.act_window" id="ftp_action">
-            <field name="name">ftp.action</field>
+            <field name="name">FTP</field>
             <field name="res_model">ftp.server</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
