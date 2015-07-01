@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-###############################################################################
 #    Copyright (C) 2015  Jonathan Finlay <jfinlay@riseup.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,30 +15,29 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name' : 'Portal Facturas',
-    'version' : '1.0',
-    'author' : 'Jonathan Finlay <jfinlay@riseup.net>',
-    'category' : 'Accounting & Finance',
-    'description' : """
-Portal para facturas electronicas.
-====================================
+from openerp.osv import osv, fields
 
-    * Portal para publicación de facturas-e
+class history_log(osv.Model):
+    _name = 'history.log'
+    _description = 'History log table'
 
-    """,
-    'website': '',
-    'depends' : ['website'],
-    'data': [
-        'data/ir_cron.xml',
-        'views/auth_signup_login.xml',
-        'views/ftp_view.xml'
-    ],
-    'qweb' : [],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-}
+    _columns = {
+        'name': fields.char('Archivo', size=256, required=True),
+        'path': fields.char('Ruta', size=512, required=True),
+        'date': fields.datetime('Fecha', required=True),
+        'state': fields.selection([
+            ('processed', 'Procesada'),
+            ('no_processed', 'No procesada'),
+            ('exception', 'En excepción')
+        ], 'Estado', required=True),
+    }
+
+    _defaults = {
+        'state': 'no_processed',
+    }
+
+    _sql_constraints = [
+        ('unique_name', 'unique(name)', 'El nombre del documento debe ser unico')
+    ]
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

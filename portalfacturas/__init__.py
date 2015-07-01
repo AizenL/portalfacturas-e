@@ -18,3 +18,5 @@
 import res_partner
 import controllers
 import ftp_server
+import history_log
+import mail_message

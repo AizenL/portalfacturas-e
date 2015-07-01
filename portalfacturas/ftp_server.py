@@ -53,6 +53,24 @@ class FtpServer(osv.Model):
                     pass
         raise osv.except_osv("Connection Test Succeeded!", "Everything seems properly set up!")
 
+    def createconnection(self, cr, uid, context=None):
+        ids = self.search(cr, uid, [], context=context)
+        for ftp_server in self.browse(cr, uid, ids, context=context):
+            ftp = False
+            if not ftp_server.active:
+                pass
+            try:
+                ftp = self.connect(ftp_server.host, ftp_server.port,
+                                   ftp_server.user, ftp_server.pwd)
+            except Exception, e:
+                raise osv.except_osv("Connection Test Failed!", "Here is what we got instead:\n %s" % tools.ustr(e))
+            try:
+                if ftp: return ftp
+            except Exception:
+                # ignored, just a consequence of the previous exception
+                pass
+        return False
+
     def connect(self, host, port, user, pwd):
         ftp = FTP()
         ftp.connect(host, port)
@@ -60,7 +78,7 @@ class FtpServer(osv.Model):
         return ftp
 
     def getfile(self, ftp, filename='log.txt'):
-        file = open(localfile, 'w')
+        file = open(filename, 'a')
         ftp.retrbinary('RETR ' + filename, file.write)
         file.close()
 
