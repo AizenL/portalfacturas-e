@@ -17,12 +17,22 @@
 #
 #################################################################################
 
-from openerp.osv import osv
+from openerp.osv import osv, fields
 import base64
 
 class mail_message(osv.Model):
 
     _inherit = 'mail.message'
+
+    _columns = {
+        'doc_type': fields.selection(
+            [
+                ('fac', 'Factura'),
+                ('nc', 'Nota de crédito'),
+                ('gui', 'Guia de remisión'),
+                ('ret', 'Retención')
+            ], 'Tipo de documento'),
+    }
 
     def mime_type(self, file):
         ext = file.split('.')[1]
@@ -30,6 +40,10 @@ class mail_message(osv.Model):
             return 'application/pdf'
         elif ext == "xml":
             return 'application/xml'
+
+    def doc_type(self, filename):
+        type = filename.split('_')[0]
+        return type.lower()
 
     def process_log(self, cr, uid, automatic=False, use_new_cursor=False, context=None):
         """
@@ -81,6 +95,7 @@ class mail_message(osv.Model):
                                  'datas': file,
                                  'datas_fname': row[0],
                                  'type': 'binary',
+                                 'doc_type': self.doc_type(row[0])
                                  }
                 attach_id = ir_attachment_obj.create(cr, uid, document_vals, context)
                 mail_vals = {'subject': 'Nuevo documento %s' % row[0].replace('_', '-'),
@@ -97,8 +112,11 @@ class mail_message(osv.Model):
                 cr.execute("INSERT INTO mail_notification(\"is_read\", \"starred\", \"partner_id\", \"message_id\") "
                            "VALUES ('%s', '%s', '%s', '%s')" % ('FALSE', 'FALSE', user.partner_id.id, mail_id))
                 cr.execute("UPDATE history_log SET state = 'processed' WHERE id = '%s'" % row[2])
-                #TODO: nuevo campo en mail_message: Tipo de documento
-                #TODO: filtros en vista search mail_message
+
+                # TODO: filtros en vista search mail_message
+                # TODO: Sobreescribir vista search
+                # TODO: Que la vista search sea extendida por defecto
+                # TODO: Proceso que vacie el archivo de log
         return {}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
