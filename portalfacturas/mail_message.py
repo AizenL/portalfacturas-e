@@ -113,9 +113,6 @@ class mail_message(osv.Model):
                            "VALUES ('%s', '%s', '%s', '%s')" % ('FALSE', 'FALSE', user.partner_id.id, mail_id))
                 cr.execute("UPDATE history_log SET state = 'processed' WHERE id = '%s'" % row[2])
 
-                # TODO: filtros en vista search mail_message
-                # TODO: Sobreescribir vista search
-                # TODO: Que la vista search sea extendida por defecto
                 # TODO: Proceso que vacie el archivo de log
         return {}
 

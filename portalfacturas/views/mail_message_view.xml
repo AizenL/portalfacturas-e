@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- mail.message search: wall view !-->
+        <record model="ir.ui.view" id="mail.view_message_search">
+            <field name="name">mail.message.search</field>
+            <field name="model">mail.message</field>
+            <field name="priority">25</field>
+            <field name="arch" type="xml">
+                <search string="Messages Search">
+                    <field name="body" string="Content" filter_domain="['|', ('subject', 'ilike', self), ('body', 'ilike', self)]" />
+                    <filter string="Facturas"
+                            name="fac" help="Show messages to read"
+                            domain="[('doc_type', '=', 'fac')]"/>
+                    <filter string="Retenciones"
+                            name="ret" help="Show messages to read"
+                            domain="[('doc_type', '=', 'ret)]"/>
+                    <filter string="Notas de crédito"
+                            name="nc" help="Show messages to read"
+                            domain="[('doc_type', '=', 'nc')]"/>
+                    <filter string="Guias de remisión"
+                            name="gui" help="Show messages to read"
+                            domain="[('doc_type', '=', 'gui')]"/>
+                    <separator/>
+                </search>
+            </field>
+        </record>
+
+    </data>
+</openerp>
