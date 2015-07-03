@@ -41,10 +41,6 @@ class mail_message(osv.Model):
         elif ext == "xml":
             return 'application/xml'
 
-    def doc_type(self, filename):
-        type = filename.split('_')[0]
-        return type.lower()
-
     def process_log(self, cr, uid, automatic=False, use_new_cursor=False, context=None):
         """
         Cron activity to get all new documents for current users
@@ -72,6 +68,11 @@ class mail_message(osv.Model):
         """
         Load users's invoices
         """
+
+        def doc_type(filename):
+            type = filename.split('_')[0]
+            return type.lower()
+
         user_obj = self.pool.get('res.users')
         ids = user_obj.search(cr, uid, [('vat', '!=', False)], context=context)
         mail_obj = self.pool.get('mail.message')
@@ -95,7 +96,7 @@ class mail_message(osv.Model):
                                  'datas': file,
                                  'datas_fname': row[0],
                                  'type': 'binary',
-                                 'doc_type': self.doc_type(row[0])
+                                 'doc_type': doc_type(row[0])
                                  }
                 attach_id = ir_attachment_obj.create(cr, uid, document_vals, context)
                 mail_vals = {'subject': 'Nuevo documento %s' % row[0].replace('_', '-'),
@@ -114,6 +115,11 @@ class mail_message(osv.Model):
                 cr.execute("UPDATE history_log SET state = 'processed' WHERE id = '%s'" % row[2])
 
                 # TODO: Proceso que vacie el archivo de log
+                # TODO: Hacer un log con todos los archivos
+                # TODO: Mejorar contraseñas
+                # TODO: Cambiar el mensaje de recuperación de la contraseña
+                # TODO: Cambiar en la hoja de estilos lo morado por verde
+                # TODO: Pagina de inicio y manuales en video
         return {}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -34,6 +34,29 @@ class res_partner(osv.osv):
             return False
         return True
 
+    def signup_retrieve_info(self, cr, uid, token, context=None):
+        """ retrieve the user info about the token
+            :return: a dictionary with the user information:
+                - 'db': the name of the database
+                - 'token': the token, if token is valid
+                - 'name': the name of the partner, if token is valid
+                - 'login': the user login, if the user already exists
+                - 'email': the partner email, if the user does not exist
+                - 'vat': the vat of the partner,
+        """
+        partner = self._signup_retrieve_partner(cr, uid, token, raise_exception=True, context=None)
+        res = {'db': cr.dbname}
+        if partner.signup_valid:
+            res['token'] = token
+            res['name'] = partner.name
+            res['vat'] = partner.vat
+        if partner.user_ids:
+            res['login'] = partner.user_ids[0].login
+        else:
+            res['email'] = partner.email or ''
+        return res
+
+
     _sql_constraints = [('unique_vat', 'unique(vat)', 'Ya existe un usuario con esta C.I./R.U.C.')]
 
     _defaults = {
