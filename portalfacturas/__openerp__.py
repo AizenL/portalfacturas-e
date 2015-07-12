@@ -32,6 +32,7 @@ Portal para facturas electronicas.
     'depends' : ['website'],
     'data': [
         'data/ir_cron.xml',
+        'data/auth_signup_data.xml',
         'views/auth_signup_login.xml',
         'views/ftp_view.xml',
         'views/mail_message_view.xml'

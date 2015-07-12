@@ -116,8 +116,6 @@ class mail_message(osv.Model):
 
                 # TODO: Proceso que vacie el archivo de log
                 # TODO: Hacer un log con todos los archivos
-                # TODO: Mejorar contraseñas
-                # TODO: Cambiar el mensaje de recuperación de la contraseña
                 # TODO: Cambiar en la hoja de estilos lo morado por verde
                 # TODO: Pagina de inicio y manuales en video
         return {}

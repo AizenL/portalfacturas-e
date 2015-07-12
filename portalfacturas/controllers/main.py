@@ -116,6 +116,7 @@ class AuthSignupHome(openerp.addons.web.controllers.main.Home):
         assert res_partner.vat_check(request.cr, openerp.SUPERUSER_ID, values['vat']), "Validacion fallida; La C.I/RUC no es valida."
         assert any([k for k in values.values()]), "The form was not properly filled in."
         assert values.get('password') == qcontext.get('confirm_password'), "Passwords do not match; please retype them."
+        assert len(values.get('password')) >= 6, u"La contraseña es muy corta; debe tener el menos 6 caracteres."
         self._signup_with_values(qcontext.get('token'), values)
         request.cr.commit()
 
