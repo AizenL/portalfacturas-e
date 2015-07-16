@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vim:fdn=3:
+-->
+<openerp>
+    <data>
+
+        <template id="web.assets_backend">
+            <!-- Datejs -->
+            <script type="text/javascript" src="/web/static/lib/datejs/core.js"></script>
+            <script type="text/javascript" src="/web/static/lib/datejs/parser.js"></script>
+            <script type="text/javascript" src="/web/static/lib/datejs/sugarpak.js"></script>
+            <script type="text/javascript" src="/web/static/lib/datejs/extras.js"></script>
+
+            <!-- jQuery addons -->
+            <script type="text/javascript" src="/web/static/lib/jquery.validate/jquery.validate.js"></script>
+            <script type="text/javascript" src="/web/static/lib/jquery.autosize/jquery.autosize.js"></script>
+            <script type="text/javascript" src="/web/static/lib/jquery.scrollTo/jquery.scrollTo-min.js"></script>
+
+            <link rel="stylesheet" href="/web/static/lib/cleditor/jquery.cleditor.css"/>
+            <script type="text/javascript" src="/web/static/lib/cleditor/jquery.cleditor.js"></script>
+
+            <link rel="stylesheet" href="/web/static/lib/jquery.textext/jquery.textext.css"/>
+            <script type="text/javascript" src="/web/static/lib/jquery.textext/jquery.textext.js"></script>
+
+            <link rel="stylesheet" href="/web/static/lib/select2/select2.css"/>
+            <script type="text/javascript" src="/web/static/lib/select2/select2.js"></script>
+
+            <link rel="stylesheet" href="/web/static/lib/bootstrap/css/bootstrap.css"/>
+            <script type="text/javascript" src="/web/static/lib/bootstrap/js/bootstrap.js"></script>
+
+            <!-- jQuery ui -->
+            <link rel="stylesheet" href="/web/static/lib/jquery.ui.bootstrap/css/custom-theme/jquery-ui-1.9.0.custom.css"/>
+
+            <t t-call="web.jqueryui_conflict">
+                <script type="text/javascript" src="/web/static/lib/jquery.ui/js/jquery-ui-1.9.1.custom.js"></script>
+            </t>
+
+            <link rel="stylesheet" href="/web/static/lib/jquery.ui.timepicker/css/jquery-ui-timepicker-addon.css"/>
+            <script type="text/javascript" src="/web/static/lib/jquery.ui.timepicker/js/jquery-ui-timepicker-addon.js"></script>
+
+            <link rel="stylesheet" href="/web/static/lib/jquery.ui.notify/css/ui.notify.css"/>
+            <script type="text/javascript" src="/web/static/lib/jquery.ui.notify/js/jquery.notify.js"></script>
+
+
+            <!-- Backbone -->
+            <script type="text/javascript" src="/web/static/lib/backbone/backbone.js"></script>
+
+            <!-- Internals -->
+            <script type="text/javascript" charset="utf-8">
+                openerp._modules = <t t-raw="get_modules_order()"/>;
+            </script>
+            <link rel="stylesheet" href="/portalfacturas/static/src/css/base.css"/>
+            <link rel="stylesheet" href="/web/static/src/css/data_export.css"/>
+            <link rel="stylesheet" href="/base/static/src/css/modules.css"/>
+
+            <script type="text/javascript" src="/web/static/lib/py.js/lib/py.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/boot.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/testing.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/pyeval.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/core.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/formats.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/chrome.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/views.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/data.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/data_export.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/search.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/view_list.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/view_form.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/view_list_editable.js"></script>
+            <script type="text/javascript" src="/web/static/src/js/view_tree.js"></script>
+            <script type="text/javascript" src="/base/static/src/js/apps.js"></script>
+
+        </template>
+
+        <template id="web.login_layout" name="Login Layout">
+            <t t-call="web.layout">
+                <t t-set="head">
+                    <link href="/portalfacturas/static/src/css/base.css" rel="stylesheet"/>
+                    <link href="/web/static/lib/bootstrap/css/bootstrap.css" rel="stylesheet"/>
+                </t>
+                <t t-set="body_classname" t-value="'oe_single_form'"/>
+                <div class="oe_single_form_container modal-content">
+                    <div class="oe_single_form_logo">
+                        <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}"/>
+                    </div>
+                    <hr/>
+                    <t t-raw="0"/>
+
+                    <div class="oe_single_form_footer" t-if="not disable_footer">
+                        <t t-if="not disable_database_manager">
+                            <a class="oe_login_manage_db" t-attf-href="/web/database/manager{{ '?debug' if debug else '' }}">Manage Databases</a>
+                            <span class="oe_footer_seperator"> | </span>
+                        </t>
+                        <a href="https://www.odoo.com" target="_blank">Powered by <span>Odoo</span></a>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+
+
+    </data>
+</openerp>
