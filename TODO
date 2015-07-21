@@ -1,15 +1,1 @@
-Pendientes:
-===========
-
-* Definir los siguientes temas:
-- Cuando se envian los mensajes, considerando que no se tienen los datos de los clientes
-
-* Crear objecto mail.message con la siguiente estructura del archivo "public_mail.message.json"
-
-* Revisar templates de correo ej. addons/auth_signup/auth_signup_data.xml
-
-* Envío de correos electrónicos:
-  - Al registrarse
-  - Al ser reseteada la contraseña
-  - Al registrar una nueva factura.
-
+# TODO: Pagina de inicio y manuales en video (Cliente)
