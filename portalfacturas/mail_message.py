@@ -114,9 +114,6 @@ class mail_message(osv.Model):
                            "VALUES ('%s', '%s', '%s', '%s')" % ('FALSE', 'FALSE', user.partner_id.id, mail_id))
                 cr.execute("UPDATE history_log SET state = 'processed' WHERE id = '%s'" % row[2])
 
-                # TODO: Proceso que vacie el archivo de log
-                # TODO: Hacer un log con todos los archivos
-                # TODO: Pagina de inicio y manuales en video
         return {}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
