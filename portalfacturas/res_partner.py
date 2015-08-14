@@ -56,7 +56,6 @@ class res_partner(osv.osv):
             res['email'] = partner.email or ''
         return res
 
-
     _sql_constraints = [('unique_vat', 'unique(vat)', 'Ya existe un usuario con esta C.I./R.U.C.')]
 
     _defaults = {

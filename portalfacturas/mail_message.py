@@ -19,6 +19,7 @@
 
 from openerp.osv import osv, fields
 import base64
+import os
 
 class mail_message(osv.Model):
 
@@ -45,6 +46,8 @@ class mail_message(osv.Model):
         """
         Cron activity to get all new documents for current users
         """
+        if os.path.isfile("log.txt"):
+            os.remove("log.txt")
         ftp_obj = self.pool.get('ftp.server')
         history_obj = self.pool.get('history.log')
         ftp = ftp_obj.createconnection(cr, uid, context=context)
@@ -57,6 +60,10 @@ class mail_message(osv.Model):
             if len(line) != 3:
                 continue
             vals = {'name': line[0], 'path': line[1], 'date': line[2].replace('\n', '')}
+            confirm_query = "select name from history_log WHERE name = '%s'"
+            cr.execute(confirm_query % (vals['name']))
+            if cr.fetchone():
+                continue
             try:
                 history_obj.create(cr, uid, vals, context=context)
             except Exception:
@@ -87,16 +94,18 @@ class mail_message(osv.Model):
                 path = row[1].split('\\')[4]
                 ftp_obj = self.pool.get('ftp.server')
                 ftp = ftp_obj.createconnection(cr, uid, context=context)
-                ftp.cwd(path)
-                ftp_obj.getfile(ftp, row[0])
+                try:
+                    ftp.cwd(path)
+                    ftp_obj.getfile(ftp, row[0])
+                except:
+                    pass
                 ftp.quit()
                 file = open(row[0], 'r')
                 file = base64.b64encode(file.read())
                 document_vals = {'name': row[0],
                                  'datas': file,
                                  'datas_fname': row[0],
-                                 'type': 'binary',
-                                 'doc_type': doc_type(row[0])
+                                 'type': 'binary'
                                  }
                 attach_id = ir_attachment_obj.create(cr, uid, document_vals, context)
                 mail_vals = {'subject': 'Nuevo documento %s' % row[0].replace('_', '-'),
@@ -104,6 +113,7 @@ class mail_message(osv.Model):
                              'author_id': 1,
                              'type': 'notification',
                              'subtype_id': 1,
+                             'doc_type': doc_type(row[0])
                              }
                 mail_id = mail_obj.create(cr, uid, mail_vals, context=context)
                 cr.execute("INSERT INTO mail_message_res_partner_rel(\"mail_message_id\", \"res_partner_id\") "
