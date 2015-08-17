@@ -18,6 +18,7 @@ from openerp.osv import osv, fields
 import openerp.tools as tools
 
 from ftplib import FTP
+import os
 
 class FtpServer(osv.Model):
     """
@@ -78,6 +79,7 @@ class FtpServer(osv.Model):
         return ftp
 
     def getfile(self, ftp, filename='log.txt'):
+        os.chdir("/tmp")
         file = open(filename, 'a')
         ftp.retrbinary('RETR ' + filename, file.write)
         file.close()
