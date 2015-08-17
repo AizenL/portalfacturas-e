@@ -84,6 +84,9 @@ class mail_message(osv.Model):
         ids = user_obj.search(cr, uid, [('vat', '!=', False)], context=context)
         mail_obj = self.pool.get('mail.message')
         ir_attachment_obj = self.pool.get('ir.attachment')
+
+        os.chdir("/tmp")
+
         select_query = "SELECT \"name\", \"path\", \"id\" FROM history_log " \
                        "WHERE \"path\" like '%%%s%%' and \"state\" != 'processed'"
         for user in user_obj.browse(cr, uid, ids, context=context):
