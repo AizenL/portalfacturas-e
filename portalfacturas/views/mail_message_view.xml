@@ -10,16 +10,16 @@
                 <search string="Messages Search">
                     <field name="body" string="Content" filter_domain="['|', ('subject', 'ilike', self), ('body', 'ilike', self)]" />
                     <filter string="Facturas"
-                            name="fac" help="Show messages to read"
+                            name="fac" help="Ver facturas"
                             domain="[('doc_type', '=', 'fac')]"/>
                     <filter string="Retenciones"
-                            name="ret" help="Show messages to read"
+                            name="ret" help="Ver retenciones"
                             domain="[('doc_type', '=', 'ret)]"/>
                     <filter string="Notas de crédito"
-                            name="nc" help="Show messages to read"
+                            name="nc" help="Ver notas de crédito"
                             domain="[('doc_type', '=', 'nc')]"/>
                     <filter string="Guias de remisión"
-                            name="gui" help="Show messages to read"
+                            name="gui" help="Ver guas de remisión"
                             domain="[('doc_type', '=', 'gui')]"/>
                     <separator/>
                 </search>

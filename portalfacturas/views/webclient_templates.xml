@@ -98,6 +98,11 @@
         </template>
 
 
+        <template id="assets_backend" name="portalfacturas assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/portalfacturas/static/src/js/search.js"></script>
+            </xpath>
+        </template>
 
     </data>
 </openerp>
