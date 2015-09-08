@@ -76,8 +76,8 @@ class mail_message(osv.Model):
         Load users's invoices
         """
 
-        def doc_type(filename):
-            type = filename.split('_')[0]
+        def doc_type(filename, index=0):
+            type = filename.split('_')[index]
             return type.lower()
 
         user_obj = self.pool.get('res.users')
@@ -93,7 +93,8 @@ class mail_message(osv.Model):
             vat = user.vat
             vat = vat.replace('-', '')
             cr.execute(select_query % vat)
-            for row in cr.fetchall():
+            datas = cr.fetchall()
+            for row in datas:
                 path = row[1].split('\\')[4]
                 ftp_obj = self.pool.get('ftp.server')
                 ftp = ftp_obj.createconnection(cr, uid, context=context)
@@ -118,6 +119,7 @@ class mail_message(osv.Model):
                              'subtype_id': 1,
                              'doc_type': doc_type(row[0])
                              }
+
                 mail_id = mail_obj.create(cr, uid, mail_vals, context=context)
                 cr.execute("INSERT INTO mail_message_res_partner_rel(\"mail_message_id\", \"res_partner_id\") "
                            "VALUES ('%s', '%s')" % (mail_id, user.partner_id.id))
