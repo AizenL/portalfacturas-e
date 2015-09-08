@@ -9,8 +9,8 @@
             <field name="arch" type="xml">
                 <search string="Messages Search">
                     <field name="body" string="Content" filter_domain="['|', ('subject', 'ilike', self), ('body', 'ilike', self)]" />
-                    <field name="date" string="Fecha mayor que" filter_domain="[('date', '&gt;', self)]" />
-                    <field name="date" string="Fecha menor que" filter_domain="[('date', '&lt;', self)]" />
+                    <field name="dateg" string="Fecha mayor que" filter_domain="[('date', '&gt;', self)]" />
+                    <field name="datel" string="Fecha menor que" filter_domain="[('date', '&lt;', self)]" />
                     <filter string="Facturas"
                             name="fac" help="Ver facturas"
                             domain="[('doc_type', '=', 'fac')]"/>
