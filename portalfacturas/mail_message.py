@@ -21,6 +21,8 @@ from openerp.osv import osv, fields
 import base64
 import os
 
+from openerp import SUPERUSER_ID
+
 class mail_message(osv.Model):
 
     _inherit = 'mail.message'
@@ -79,12 +81,11 @@ class mail_message(osv.Model):
         """
         Load users's invoices
         """
-        def correct_name(filename, pattern='"\\\+|/"'):
+        def correct_name(filename):
             """
             Check if file name is correct
             """
-            import re
-            return not re.search(pattern, filename) is None
+            return filename.find('\\') > 0
 
         def doc_type(filename, index=0):
             """
@@ -94,7 +95,7 @@ class mail_message(osv.Model):
             return type.lower()
 
         user_obj = self.pool.get('res.users')
-        ids = user_obj.search(cr, uid, [('vat', '!=', False)], context=context)
+        ids = user_obj.search(cr, uid, [('vat', '!=', False), ('id', '=', uid)], context=context)
         mail_obj = self.pool.get('mail.message')
         ir_attachment_obj = self.pool.get('ir.attachment')
 
@@ -108,16 +109,16 @@ class mail_message(osv.Model):
             cr.execute(select_query % vat)
             datas = cr.fetchall()
             for row in datas:
-                if not correct_name(row[0]):
-                    pass
+                if correct_name(row[0]):
+                    continue
                 path = row[1].split('\\')[4]
                 ftp_obj = self.pool.get('ftp.server')
-                ftp = ftp_obj.createconnection(cr, uid, context=context)
+                ftp = ftp_obj.createconnection(cr, SUPERUSER_ID, context=context)
                 try:
                     ftp.cwd(path)
                     ftp_obj.getfile(ftp, row[0])
                 except:
-                    pass
+                    continue
                 ftp.quit()
                 file = open(row[0], 'r')
                 file = base64.b64encode(file.read())
@@ -126,7 +127,7 @@ class mail_message(osv.Model):
                                  'datas_fname': row[0],
                                  'type': 'binary'
                                  }
-                attach_id = ir_attachment_obj.create(cr, uid, document_vals, context)
+                attach_id = ir_attachment_obj.create(cr, SUPERUSER_ID, document_vals, context)
                 doc_name = row[0].replace('_', '-')
                 mail_vals = {'subject': 'Nuevo documento %s' % doc_name,
                              'body': 'Un nuevo documento esta disponible',
@@ -137,7 +138,7 @@ class mail_message(osv.Model):
                              # 'doc_name': doc_name
                              }
 
-                mail_id = mail_obj.create(cr, uid, mail_vals, context=context)
+                mail_id = mail_obj.create(cr, SUPERUSER_ID, mail_vals, context=context)
                 cr.execute("INSERT INTO mail_message_res_partner_rel(\"mail_message_id\", \"res_partner_id\") "
                            "VALUES ('%s', '%s')" % (mail_id, user.partner_id.id))
                 cr.execute("INSERT INTO message_attachment_rel(\"message_id\", \"attachment_id\") "
