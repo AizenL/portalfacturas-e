@@ -101,7 +101,7 @@ class mail_message(osv.Model):
 
         os.chdir("/tmp")
 
-        select_query = "SELECT \"name\", \"path\", \"id\" FROM history_log " \
+        select_query = "SELECT \"name\", \"path\", \"id\", \"date\" FROM history_log " \
                        "WHERE \"path\" like '%%%s%%' and \"state\" != 'processed'"
         for user in user_obj.browse(cr, uid, ids, context=context):
             vat = user.vat
@@ -135,6 +135,7 @@ class mail_message(osv.Model):
                              'type': 'notification',
                              'subtype_id': 1,
                              'doc_type': doc_type(row[0]),
+                             'date': row[3],
                              # 'doc_name': doc_name
                              }
 
