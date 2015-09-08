@@ -16,7 +16,7 @@
                             domain="[('doc_type', '=', 'fac')]"/>
                     <filter string="Retenciones"
                             name="ret" help="Ver retenciones"
-                            domain="[('doc_type', '=', 'ret)]"/>
+                            domain="[('doc_type', '=', 'ret')]"/>
                     <filter string="Notas de crédito"
                             name="nc" help="Ver notas de crédito"
                             domain="[('doc_type', '=', 'nc')]"/>
@@ -28,7 +28,7 @@
                             name="pdf" help="Ver solo PDFs"
                             domain="[('subject', 'ilike', 'pdf')]"/>
                     <filter string="XML"
-                            name="pdf" help="Ver solo XMLs"
+                            name="xml" help="Ver solo XMLs"
                             domain="[('subject', 'ilike', 'xml')]"/>
                     <separator/>
                     <!--
