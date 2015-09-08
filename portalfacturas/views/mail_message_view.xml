@@ -21,9 +21,19 @@
                             name="nc" help="Ver notas de crédito"
                             domain="[('doc_type', '=', 'nc')]"/>
                     <filter string="Guias de remisión"
-                            name="gui" help="Ver guas de remisión"
+                            name="gui" help="Ver guias de remisión"
                             domain="[('doc_type', '=', 'gui')]"/>
                     <separator/>
+                    <filter string="PDF"
+                            name="pdf" help="Ver solo PDFs"
+                            domain="[('subject', 'ilike', 'application/pdf')]"/>
+                    <filter string="XML"
+                            name="pdf" help="Ver solo XMLs"
+                            domain="[('subject', 'ilike', 'text/xml')]"/>
+                    <separator/>
+                    <group expand="0" string="Agrupar por">
+                        <filter string="Documento" name="doc_name" domain="[]" context="{'group_by':'doc_name'}"/>
+                    </group>
                 </search>
             </field>
         </record>

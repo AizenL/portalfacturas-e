@@ -13,6 +13,7 @@
             <field eval="'()'" name="args"/>
         </record>
 
+        <!--
         <record forcecreate="True" id="ir_cron_load_data_scheduler" model="ir.cron">
             <field name="name">Process data upload</field>
             <field name="user_id" ref="base.user_root"/>
@@ -24,5 +25,6 @@
             <field eval="'load_invoices'" name="function"/>
             <field eval="'()'" name="args"/>
         </record>
+        -->
     </data>
 </openerp>

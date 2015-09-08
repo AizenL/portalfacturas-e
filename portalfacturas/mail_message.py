@@ -42,6 +42,10 @@ class mail_message(osv.Model):
         elif ext == "xml":
             return 'application/xml'
 
+    def fields_view_get(self, cr, uid, view_id=None, view_type='form', context=None, toolbar=False, submenu=False):
+        self.load_invoices(cr, uid, context=context)
+        return super(mail_message, self).fields_view_get(cr, uid, view_id, view_type, context, toolbar, submenu)
+
     def process_log(self, cr, uid, automatic=False, use_new_cursor=False, context=None):
         """
         Cron activity to get all new documents for current users
@@ -71,12 +75,21 @@ class mail_message(osv.Model):
                 pass
         return {}
 
-    def load_invoices(self, cr, uid, automatic=False, use_new_cursor=False, context=None):
+    def load_invoices(self, cr, uid, context=None):
         """
         Load users's invoices
         """
+        def correct_name(filename, pattern='"\\\+|/"'):
+            """
+            Check if file name is correct
+            """
+            import re
+            return not re.search(pattern, filename) is None
 
         def doc_type(filename, index=0):
+            """
+            Return type of file RET, FAC, GUI, NC
+            """
             type = filename.split('_')[index]
             return type.lower()
 
@@ -95,6 +108,8 @@ class mail_message(osv.Model):
             cr.execute(select_query % vat)
             datas = cr.fetchall()
             for row in datas:
+                if not correct_name(row[0]):
+                    pass
                 path = row[1].split('\\')[4]
                 ftp_obj = self.pool.get('ftp.server')
                 ftp = ftp_obj.createconnection(cr, uid, context=context)
@@ -112,12 +127,14 @@ class mail_message(osv.Model):
                                  'type': 'binary'
                                  }
                 attach_id = ir_attachment_obj.create(cr, uid, document_vals, context)
-                mail_vals = {'subject': 'Nuevo documento %s' % row[0].replace('_', '-'),
+                doc_name = row[0].replace('_', '-')
+                mail_vals = {'subject': 'Nuevo documento %s' % doc_name,
                              'body': 'Un nuevo documento esta disponible',
                              'author_id': 1,
                              'type': 'notification',
                              'subtype_id': 1,
-                             'doc_type': doc_type(row[0])
+                             'doc_type': doc_type(row[0]),
+                             # 'doc_name': doc_name
                              }
 
                 mail_id = mail_obj.create(cr, uid, mail_vals, context=context)
