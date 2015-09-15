@@ -25,6 +25,7 @@ class history_log(osv.Model):
         'name': fields.char('Archivo', size=256, required=True),
         'path': fields.char('Ruta', size=512, required=True),
         'date': fields.datetime('Fecha', required=True),
+        'value': fields.float('Valor'),
         'state': fields.selection([
             ('processed', 'Procesada'),
             ('no_processed', 'No procesada'),

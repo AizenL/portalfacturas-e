@@ -1,3 +1,2 @@
 TODO: Nueva vista de lista
-TODO: Implementar doc_name y value en mail_message para poder agrupar por documento y mostrar el valor
 TODO: Implementar llamado a mail_message.load_invoices en login

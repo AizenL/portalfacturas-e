@@ -35,6 +35,8 @@ class mail_message(osv.Model):
                 ('gui', 'Guia de remisión'),
                 ('ret', 'Retención')
             ], 'Tipo de documento'),
+        'doc_name': fields.char('Nombre', size=256),
+        'doc_value': fields.float('Valor'),
     }
 
     def mime_type(self, file):
@@ -63,9 +65,9 @@ class mail_message(osv.Model):
         for line in file.readlines():
             line.replace('\n', '')
             line = line.split('\t')
-            if len(line) != 3:
+            if len(line) != 4:
                 continue
-            vals = {'name': line[0], 'path': line[1], 'date': line[2].replace('\n', '')}
+            vals = {'name': line[0], 'path': line[1], 'date': line[2].replace('\n', ''), 'value': line[3]}
             confirm_query = "select name from history_log WHERE name = '%s'"
             cr.execute(confirm_query % (vals['name']))
             if cr.fetchone():
@@ -101,7 +103,7 @@ class mail_message(osv.Model):
 
         os.chdir("/tmp")
 
-        select_query = "SELECT \"name\", \"path\", \"id\", \"date\" FROM history_log " \
+        select_query = "SELECT \"name\", \"path\", \"id\", \"date\", \"value\" FROM history_log " \
                        "WHERE \"path\" like '%%%s%%' and \"state\" != 'processed'"
         for user in user_obj.browse(cr, uid, ids, context=context):
             vat = user.vat
@@ -135,8 +137,9 @@ class mail_message(osv.Model):
                              'type': 'notification',
                              'subtype_id': 1,
                              'doc_type': doc_type(row[0]),
-                             'date': row[3],
-                             # 'doc_name': doc_name
+                             'doc_name': row[0],
+                             'doc_value': row[3],
+                             'date': row[3]
                              }
 
                 mail_id = mail_obj.create(cr, SUPERUSER_ID, mail_vals, context=context)
