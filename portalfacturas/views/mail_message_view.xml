@@ -31,11 +31,9 @@
                             name="xml" help="Ver solo XMLs"
                             domain="[('subject', 'ilike', 'xml')]"/>
                     <separator/>
-                    <!--
                     <group expand="0" string="Agrupar por">
                         <filter string="Documento" name="doc_name" domain="[]" context="{'group_by':'doc_name'}"/>
                     </group>
-                    -->
                 </search>
             </field>
         </record>

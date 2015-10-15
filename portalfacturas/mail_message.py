@@ -37,6 +37,7 @@ class mail_message(osv.Model):
             ], 'Tipo de documento'),
         'doc_name': fields.char('Nombre', size=256),
         'doc_value': fields.float('Valor'),
+        'doc_extension': fields.char(u'Extensión', size=4)
     }
 
     def mime_type(self, file):
@@ -139,6 +140,7 @@ class mail_message(osv.Model):
                              'doc_type': doc_type(row[0]),
                              'doc_name': row[0],
                              'doc_value': row[3],
+                             'doc_extension': row[0].split('.')[1],
                              'date': row[3]
                              }
 

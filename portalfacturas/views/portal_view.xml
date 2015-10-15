@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data>
+    <data noupdate="0">
+
+        <record model="ir.ui.view" id="view_mail_invoice_message_tree">
+          <field name="name">Doc tree view </field>
+          <field name="model">mail.message</field>
+          <field name="arch" type="xml">
+            <tree string="Documentos">
+                <field name="doc_name"/>
+                <field name="doc_type"/>
+                <field name="doc_extension"/>
+                <field name="doc_value"/>
+            </tree>
+          </field>
+        </record>
+
+        <!-- FTP Form View -->
+        <record model="ir.ui.view" id="view_mail_invoice_message_form">
+            <field name="name">Doc form view </field>
+            <field name="model">mail.message</field>
+            <field name="arch" type="xml">
+                <form string="Documento">
+                    <field name="doc_name"/>
+                    <field name="doc_type"/>
+
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_mail_invoice_message">
+            <field name="name">Documentos</field>
+            <field name="res_model">mail.message</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{
+              'default_model': 'res.users',
+              'default_res_id': uid,
+              'thread_model': 'res.partner',
+            }</field>
+            <field name="domain">[('to_read', '=', True)]</field>
+
+        </record>
+
+        <!--
 
         <record id="portal.action_mail_inbox_feeds_portal" model="ir.actions.client">
             <field name="name">Inbox</field>
@@ -31,8 +73,11 @@
                 </p>
             </field>
         </record>
+        -->
+
 
         <!-- TODO: remove me in 8.0 -->
+        <!--
         <record id="portal.action_mail_star_feeds_portal" model="ir.actions.client">
             <field name="name">To-do</field>
             <field name="tag">mail.wall</field>
@@ -62,8 +107,9 @@
             </field>
         </record>
 
+        -->
         <!-- end -->
-
+        <!--
         <record id="portal.action_mail_archives_feeds_portal" model="ir.actions.client">
             <field name="name">Archives</field>
             <field name="tag">mail.wall</field>
@@ -89,10 +135,12 @@
                 </p>
             </field>
         </record>
+        -->
 
-        <!-- The menues
-        <menuitem name="Inbox" id="portal_inbox" parent="portal_messages"
-            action="action_mail_inbox_feeds_portal" sequence="10" groups="base.group_portal"/>
+        <!-- The menues -->
+        <menuitem name="Inbox" id="portal.portal_inbox" parent="portal.portal_messages"
+            action="action_mail_invoice_message" sequence="10" groups="base.group_portal"/>
+        <!--
         <menuitem name="Archives" id="portal_mail_archivesfeeds" parent="portal_messages"
             action="action_mail_archives_feeds_portal" sequence="30" groups="base.group_portal"/>
         <menuitem name="To-do" id="portal_mail_starfeeds" parent="portal_messages"

@@ -1,2 +1,13 @@
 TODO: Nueva vista de lista
-TODO: Implementar llamado a mail_message.load_invoices en login
+
+TODO: Ejecutar sql para (1) obtener doc_name (2) obtener doc_extension, de los registros existentes:
+      `update mail_message set doc_name = regexp_replace(regexp_replace(subject, '^.* ', ''), '.pdf|.xml', '')`
+      `update mail_message set doc_extension = split_part(subject, '.', '2') where subtype_id = 1`
+
+TODO: Instalar módulos web_search_drawer_unfold y web_menu
+
+TODO: Un registro por documento que incluye (xml y pdf)
+
+TODO: Usar valor total del documento, en caso de las guias sin valor (xml)
+
+TODO: Reporte dinámico en el que se pueda consultar los documentos por año, mes y valor, conservar los filtros
