@@ -21,6 +21,9 @@ from openerp.osv import osv, fields
 import base64
 import os
 
+from lxml import etree
+from StringIO import StringIO
+
 from openerp import SUPERUSER_ID
 
 class mail_message(osv.Model):
@@ -97,6 +100,50 @@ class mail_message(osv.Model):
             type = filename.split('_')[index]
             return type.lower()
 
+        def doc_name(filename):
+            return filename.split('.')[0]
+
+        def get_price(file):
+            tree = etree.parse(StringIO(file))
+            return float(tree.find('.//totalSinImpuestos').text)
+
+        def get_file(path, row):
+            ftp_obj = self.pool.get('ftp.server')
+            ftp = ftp_obj.createconnection(cr, SUPERUSER_ID, context=context)
+            try:
+                ftp.cwd(path)
+                ftp_obj.getfile(ftp, row[0])
+            except:
+                return 0
+            ftp.quit()
+            file = open(row[0], 'r')
+            file = base64.b64encode(file.read())
+            document_vals = {'name': row[0],
+                             'datas': file,
+                             'datas_fname': row[0],
+                             'type': 'binary'
+                             }
+            attach_id = ir_attachment_obj.create(cr, SUPERUSER_ID, document_vals, context)
+            return attach_id, get_price(file)
+
+        def create_notification(row, price=0):
+            doc_name = row[0].replace('_', '-')
+            mail_vals = {'subject': 'Nuevo documento %s' % doc_name,
+                         'body': 'Un nuevo documento esta disponible',
+                         'author_id': 1,
+                         'type': 'notification',
+                         'subtype_id': 1,
+                         'doc_type': doc_type(row[0]),
+                         'doc_name': row[0],
+                         'doc_value': row[3],
+                         'doc_extension': row[0].split('.')[1],
+                         'doc_price': price,
+                         'date': row[3]
+                         }
+
+            mail_id = mail_obj.create(cr, SUPERUSER_ID, mail_vals, context=context)
+            return mail_id
+
         user_obj = self.pool.get('res.users')
         ids = user_obj.search(cr, uid, [('vat', '!=', False), ('id', '=', uid)], context=context)
         mail_obj = self.pool.get('mail.message')
@@ -114,45 +161,32 @@ class mail_message(osv.Model):
             for row in datas:
                 if correct_name(row[0]):
                     continue
-                path = row[1].split('\\')[4]
-                ftp_obj = self.pool.get('ftp.server')
-                ftp = ftp_obj.createconnection(cr, SUPERUSER_ID, context=context)
-                try:
-                    ftp.cwd(path)
-                    ftp_obj.getfile(ftp, row[0])
-                except:
-                    continue
-                ftp.quit()
-                file = open(row[0], 'r')
-                file = base64.b64encode(file.read())
-                document_vals = {'name': row[0],
-                                 'datas': file,
-                                 'datas_fname': row[0],
-                                 'type': 'binary'
-                                 }
-                attach_id = ir_attachment_obj.create(cr, SUPERUSER_ID, document_vals, context)
-                doc_name = row[0].replace('_', '-')
-                mail_vals = {'subject': 'Nuevo documento %s' % doc_name,
-                             'body': 'Un nuevo documento esta disponible',
-                             'author_id': 1,
-                             'type': 'notification',
-                             'subtype_id': 1,
-                             'doc_type': doc_type(row[0]),
-                             'doc_name': row[0],
-                             'doc_value': row[3],
-                             'doc_extension': row[0].split('.')[1],
-                             'date': row[3]
-                             }
-
-                mail_id = mail_obj.create(cr, SUPERUSER_ID, mail_vals, context=context)
-                cr.execute("INSERT INTO mail_message_res_partner_rel(\"mail_message_id\", \"res_partner_id\") "
-                           "VALUES ('%s', '%s')" % (mail_id, user.partner_id.id))
-                cr.execute("INSERT INTO message_attachment_rel(\"message_id\", \"attachment_id\") "
-                           "VALUES ('%s', '%s')" % (mail_id, attach_id))
-                cr.execute("INSERT INTO mail_notification(\"is_read\", \"starred\", \"partner_id\", \"message_id\") "
-                           "VALUES ('%s', '%s', '%s', '%s')" % ('FALSE', 'FALSE', user.partner_id.id, mail_id))
-                cr.execute("UPDATE history_log SET state = 'processed' WHERE id = '%s'" % row[2])
-
+                cr.execute("SELECT \"name\", \"path\", \"id\", \"date\", \"value\" FROM history_log "
+                           "WHERE \"name\" like '%%%s%%' and \"state\" != 'processed'" % doc_name(row[0]))
+                files = cr.fetchall()
+                attach_ids = []
+                history_log_ids = []
+                price = 0.0
+                for file in files:
+                    path = file[1].split('\\')[4]
+                    attach_id = None
+                    try:
+                        attach_id, price = get_file(path, file) #If 0 = error, then continue
+                    except:
+                        continue
+                    if attach_id:
+                        attach_ids.append(attach_id)
+                        history_log_ids.append(file[2])
+                if attach_ids:
+                    mail_id = create_notification(row, price=price)
+                    cr.execute("INSERT INTO mail_message_res_partner_rel(\"mail_message_id\", \"res_partner_id\") "
+                               "VALUES ('%s', '%s')" % (mail_id, user.partner_id.id))
+                    for attach_id in attach_ids:
+                        cr.execute("INSERT INTO message_attachment_rel(\"message_id\", \"attachment_id\") "
+                                   "VALUES ('%s', '%s')" % (mail_id, attach_id))
+                    cr.execute("INSERT INTO mail_notification(\"is_read\", \"starred\", \"partner_id\", \"message_id\") "
+                               "VALUES ('%s', '%s', '%s', '%s')" % ('FALSE', 'FALSE', user.partner_id.id, mail_id))
+                    cr.execute("UPDATE history_log SET state = 'processed' WHERE id in ('%s')" % history_log_ids)
         return {}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
