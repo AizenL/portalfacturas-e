@@ -22,6 +22,7 @@ import base64
 import os
 
 from lxml import etree
+from xml.sax.saxutils import unescape
 from StringIO import StringIO
 
 from openerp import SUPERUSER_ID
@@ -101,32 +102,65 @@ class mail_message(osv.Model):
             return type.lower()
 
         def doc_name(filename):
+            """
+            Get filename
+            :param filename:
+            :return: name_of_file_without_extension
+            """
             return filename.split('.')[0]
 
-        def get_price(file):
-            tree = etree.parse(StringIO(file))
-            return float(tree.find('.//totalSinImpuestos').text)
+        def get_price(xml, name):
+            """
+            Get price from xml
+            :param xml: xml file
+            :param name: name of xml file
+            :return: float(price)
+            """
+            res = 0.0
+            if doc_type(name) in ('FAC', 'NC'):
+                f = open(xml)
+                xml = f.read()
+                f.close()
+                xml = StringIO(xml)
+                xml = StringIO(unescape(xml.getvalue()))
+                tree = etree.parse(xml)
+                xml = tree.find('//comprobante').text
+                tree = etree.parse(StringIO(xml))
+                res = float(tree.find('//totalSinImpuestos').text)
+            return res
 
-        def get_file(path, row):
+        def get_file(path, filename):
+            """
+            Get file from ftp server
+            :param path: path of file in server
+            :param filename: name of file in ftp server
+            :return: attach_id & price
+            """
             ftp_obj = self.pool.get('ftp.server')
             ftp = ftp_obj.createconnection(cr, SUPERUSER_ID, context=context)
             try:
                 ftp.cwd(path)
-                ftp_obj.getfile(ftp, row[0])
+                ftp_obj.getfile(ftp, filename[0])
             except:
                 return 0
             ftp.quit()
-            file = open(row[0], 'r')
+            file = open(filename[0], 'r')
             file = base64.b64encode(file.read())
-            document_vals = {'name': row[0],
+            document_vals = {'name': filename[0],
                              'datas': file,
-                             'datas_fname': row[0],
+                             'datas_fname': filename[0],
                              'type': 'binary'
                              }
             attach_id = ir_attachment_obj.create(cr, SUPERUSER_ID, document_vals, context)
-            return attach_id, get_price(file)
+            return attach_id, get_price(file, filename[0])
 
         def create_notification(row, price=0):
+            """
+            Create notification
+            :param row: history log record
+            :param price: price of document
+            :return: notification_id
+            """
             doc_name = row[0].replace('_', '-')
             mail_vals = {'subject': 'Nuevo documento %s' % doc_name,
                          'body': 'Un nuevo documento esta disponible',
@@ -184,8 +218,8 @@ class mail_message(osv.Model):
                     for attach_id in attach_ids:
                         cr.execute("INSERT INTO message_attachment_rel(\"message_id\", \"attachment_id\") "
                                    "VALUES ('%s', '%s')" % (mail_id, attach_id))
-                    cr.execute("INSERT INTO mail_notification(\"is_read\", \"starred\", \"partner_id\", \"message_id\") "
-                               "VALUES ('%s', '%s', '%s', '%s')" % ('FALSE', 'FALSE', user.partner_id.id, mail_id))
+                    cr.execute("INSERT INTO mail_notification(\"is_read\", \"starred\", \"partner_id\", \"message_id\")"
+                               " VALUES ('%s', '%s', '%s', '%s')" % ('FALSE', 'FALSE', user.partner_id.id, mail_id))
                     cr.execute("UPDATE history_log SET state = 'processed' WHERE id in ('%s')" % history_log_ids)
         return {}
 
