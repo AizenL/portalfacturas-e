@@ -29,7 +29,7 @@ Portal para facturas electronicas.
 
     """,
     'website': '',
-    'depends' : ['website'],
+    'depends' : ['website','web_search_drawer_unfold','web_menu'],
     'data': [
         'data/ir_cron.xml',
         'data/auth_signup_data.xml',

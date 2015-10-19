@@ -21,9 +21,14 @@
             <field name="model">mail.message</field>
             <field name="arch" type="xml">
                 <form string="Documento">
-                    <field name="doc_name"/>
-                    <field name="doc_type"/>
-
+                    <group col="4" colspan="2">
+                        <field name="doc_name" readonly="1"/>
+                        <field name="date" readonly="1"/>
+                        <field name="doc_value" readonly="1"/>
+                        <field name="doc_type" readonly="1"/>
+                        <separator string="Archivos" colspan="4"/>
+                        <field name="attachment_ids" colspan="4" readonly="1" nolabel="1"/>
+                    </group>
                 </form>
             </field>
         </record>
