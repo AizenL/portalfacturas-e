@@ -96,7 +96,7 @@ class mail_message(osv.Model):
 
         def doc_type(filename, index=0):
             """
-            Return type of file RET, FAC, GUI, NC
+            Return type of file: ret, fac, gui, nc
             """
             type = filename.split('_')[index]
             return type.lower()
@@ -109,7 +109,15 @@ class mail_message(osv.Model):
             """
             return filename.split('.')[0]
 
-        def get_price(xml, name):
+        def doc_extension(filename):
+            """
+            Get filename
+            :param filename:
+            :return: name_of_file_without_extension
+            """
+            return filename.split('.')[1]
+
+        def get_price(file, name):
             """
             Get price from xml
             :param xml: xml file
@@ -117,15 +125,15 @@ class mail_message(osv.Model):
             :return: float(price)
             """
             res = 0.0
-            if doc_type(name) in ('FAC', 'NC'):
-                f = open(xml)
-                xml = f.read()
-                f.close()
-                xml = StringIO(xml)
-                xml = StringIO(unescape(xml.getvalue()))
-                tree = etree.parse(xml)
-                xml = tree.find('//comprobante').text
-                tree = etree.parse(StringIO(xml))
+            if doc_type(name) in ('fac', 'nc') and doc_extension(name) == "xml":
+                file = StringIO(file)
+                print file.getvalue()
+                print name
+                print file
+                tree = etree.parse(file)
+                document = tree.find('//comprobante').text
+                document = StringIO(unescape(document.getvalue()))
+                tree = etree.parse(StringIO(document))
                 res = float(tree.find('//totalSinImpuestos').text)
             return res
 
@@ -144,17 +152,21 @@ class mail_message(osv.Model):
             except:
                 return 0
             ftp.quit()
-            file = open(filename[0], 'r')
-            file = base64.b64encode(file.read())
+            f = open(filename[0], 'r')
+            file = f.read()
+            f.close()
+            price = get_price(file, filename[0])
+            file64 = base64.b64encode(file)
             document_vals = {'name': filename[0],
-                             'datas': file,
+                             'datas': file64,
                              'datas_fname': filename[0],
-                             'type': 'binary'
+                             'type': 'binary',
+                             'res_model': 'mail.message'
                              }
             attach_id = ir_attachment_obj.create(cr, SUPERUSER_ID, document_vals, context)
-            return attach_id, get_price(file, filename[0])
+            return attach_id, price
 
-        def create_notification(row, price=0):
+        def create_notification(row, price=0.0):
             """
             Create notification
             :param row: history log record
@@ -168,10 +180,9 @@ class mail_message(osv.Model):
                          'type': 'notification',
                          'subtype_id': 1,
                          'doc_type': doc_type(row[0]),
-                         'doc_name': row[0],
-                         'doc_value': row[3],
+                         'doc_name': row[0].split(".")[0],
+                         'doc_value': price,
                          'doc_extension': row[0].split('.')[1],
-                         'doc_price': price,
                          'date': row[3]
                          }
 
@@ -204,10 +215,12 @@ class mail_message(osv.Model):
                 for file in files:
                     path = file[1].split('\\')[4]
                     attach_id = None
-                    try:
-                        attach_id, price = get_file(path, file) #If 0 = error, then continue
-                    except:
-                        continue
+                    #try:
+                    attach_id, ret_price = get_file(path, file)
+                    if ret_price:
+                        price = ret_price
+                    #except:
+                    #    continue
                     if attach_id:
                         attach_ids.append(attach_id)
                         history_log_ids.append(file[2])
@@ -220,7 +233,11 @@ class mail_message(osv.Model):
                                    "VALUES ('%s', '%s')" % (mail_id, attach_id))
                     cr.execute("INSERT INTO mail_notification(\"is_read\", \"starred\", \"partner_id\", \"message_id\")"
                                " VALUES ('%s', '%s', '%s', '%s')" % ('FALSE', 'FALSE', user.partner_id.id, mail_id))
-                    cr.execute("UPDATE history_log SET state = 'processed' WHERE id in ('%s')" % history_log_ids)
+                    if len(history_log_ids) == 1:
+                        history_log_ids = str(tuple(history_log_ids)).replace(",", "")
+                    else:
+                        history_log_ids = str(tuple(history_log_ids))
+                    cr.execute("UPDATE history_log SET state = 'processed' WHERE id in %s" % history_log_ids)
         return {}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
