@@ -41,8 +41,127 @@ class mail_message(osv.Model):
             ], 'Tipo de documento'),
         'doc_name': fields.char('Nombre', size=256),
         'doc_value': fields.float('Valor'),
-        'doc_extension': fields.char(u'Extensión', size=4)
+        'doc_extension': fields.char(u'Extensión', size=4),
+        'state': fields.selection([('to_read', 'Por leer'),
+                                   ('archive', 'Archivado')], 'Estado'),
     }
+
+    _defaults = [('state', '=', 'to_read')]
+
+    def check_access_rule(self, cr, uid, ids, operation, context=None):
+        """ Access rules of mail.message:
+            - read: if
+                - author_id == pid, uid is the author, OR
+                - mail_notification (id, pid) exists, uid has been notified, OR
+                - uid have read access to the related document if model, res_id
+                - otherwise: raise
+            - create: if
+                - no model, no res_id, I create a private message OR
+                - pid in message_follower_ids if model, res_id OR
+                - mail_notification (parent_id.id, pid) exists, uid has been notified of the parent, OR
+                - uid have write or create access on the related document if model, res_id, OR
+                - otherwise: raise
+            - write: if
+                - author_id == pid, uid is the author, OR
+                - uid has write or create access on the related document if model, res_id
+                - otherwise: raise
+            - unlink: if
+                - uid has write or create access on the related document if model, res_id
+                - otherwise: raise
+        """
+        def _generate_model_record_ids(msg_val, msg_ids):
+            """ :param model_record_ids: {'model': {'res_id': (msg_id, msg_id)}, ... }
+                :param message_values: {'msg_id': {'model': .., 'res_id': .., 'author_id': ..}}
+            """
+            model_record_ids = {}
+            for id in msg_ids:
+                vals = msg_val.get(id, {})
+                if vals.get('model') and vals.get('res_id'):
+                    model_record_ids.setdefault(vals['model'], set()).add(vals['res_id'])
+            return model_record_ids
+
+        if uid == SUPERUSER_ID:
+            return
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        not_obj = self.pool.get('mail.notification')
+        fol_obj = self.pool.get('mail.followers')
+        partner_id = self.pool['res.users'].browse(cr, SUPERUSER_ID, uid, context=None).partner_id.id
+
+        # Read mail_message.ids to have their values
+        message_values = dict((res_id, {}) for res_id in ids)
+        cr.execute('SELECT DISTINCT id, model, res_id, author_id, parent_id FROM "%s" WHERE id = ANY (%%s)' % self._table, (ids,))
+        for id, rmod, rid, author_id, parent_id in cr.fetchall():
+            message_values[id] = {'model': rmod, 'res_id': rid, 'author_id': author_id, 'parent_id': parent_id}
+
+        # Author condition (READ, WRITE, CREATE (private)) -> could become an ir.rule ?
+        author_ids = []
+        if operation == 'read' or operation == 'write':
+            author_ids = [mid for mid, message in message_values.iteritems()
+                          if message.get('author_id') and message.get('author_id') == partner_id]
+        elif operation == 'create':
+            author_ids = [mid for mid, message in message_values.iteritems()
+                          if not message.get('model') and not message.get('res_id')]
+
+        # Parent condition, for create (check for received notifications for the created message parent)
+        notified_ids = []
+        if operation == 'create':
+            parent_ids = [message.get('parent_id') for mid, message in message_values.iteritems()
+                          if message.get('parent_id')]
+            not_ids = not_obj.search(cr, SUPERUSER_ID, [('message_id.id', 'in', parent_ids), ('partner_id', '=', partner_id)], context=context)
+            not_parent_ids = [notif.message_id.id for notif in not_obj.browse(cr, SUPERUSER_ID, not_ids, context=context)]
+            notified_ids += [mid for mid, message in message_values.iteritems()
+                             if message.get('parent_id') in not_parent_ids]
+
+        # Notification condition, for read (check for received notifications and create (in message_follower_ids)) -> could become an ir.rule, but not till we do not have a many2one variable field
+        other_ids = set(ids).difference(set(author_ids), set(notified_ids))
+        model_record_ids = _generate_model_record_ids(message_values, other_ids)
+        if operation == 'read':
+            not_ids = not_obj.search(cr, SUPERUSER_ID, [
+                ('partner_id', '=', partner_id),
+                ('message_id', 'in', ids),
+            ], context=context)
+            notified_ids = [notification.message_id.id for notification in not_obj.browse(cr, SUPERUSER_ID, not_ids, context=context)]
+        elif operation == 'create':
+            for doc_model, doc_ids in model_record_ids.items():
+                fol_ids = fol_obj.search(cr, SUPERUSER_ID, [
+                    ('res_model', '=', doc_model),
+                    ('res_id', 'in', list(doc_ids)),
+                    ('partner_id', '=', partner_id),
+                ], context=context)
+                fol_mids = [follower.res_id for follower in fol_obj.browse(cr, SUPERUSER_ID, fol_ids, context=context)]
+                notified_ids += [mid for mid, message in message_values.iteritems()
+                                 if message.get('model') == doc_model and message.get('res_id') in fol_mids]
+
+        # CRUD: Access rights related to the document
+        other_ids = other_ids.difference(set(notified_ids))
+        model_record_ids = _generate_model_record_ids(message_values, other_ids)
+        document_related_ids = []
+        for model, doc_ids in model_record_ids.items():
+            model_obj = self.pool[model]
+            mids = model_obj.exists(cr, uid, list(doc_ids))
+            if hasattr(model_obj, 'check_mail_message_access'):
+                model_obj.check_mail_message_access(cr, uid, mids, operation, context=context)
+            else:
+                self.pool['mail.thread'].check_mail_message_access(cr, uid, mids, operation, model_obj=model_obj, context=context)
+            document_related_ids += [mid for mid, message in message_values.iteritems()
+                                     if message.get('model') == model and message.get('res_id') in mids]
+
+        # Calculate remaining ids: if not void, raise an error
+        other_ids = other_ids.difference(set(document_related_ids))
+        if not other_ids:
+            return
+        #raise orm.except_orm(_('Access Denied'),
+        #                     _('The requested operation cannot be completed due to security restrictions. Please contact your system administrator.\n\n(Document type: %s, Operation: %s)') %
+        #                     (self._description, operation))
+
+    def do_archive(self, cr, uid, ids, context=None):
+        for record in self.read(cr, uid, ids, ['state']):
+            if record['state'] == 'to_read':
+                self.write(cr, uid, record['id'], {'state': 'archive'})
+            elif record['state'] == 'archive':
+                self.write(cr, uid, record['id'], {'state': 'to_read'})
+        return True
 
     def mime_type(self, file):
         ext = file.split('.')[1]
@@ -117,6 +236,18 @@ class mail_message(osv.Model):
             """
             return filename.split('.')[1]
 
+        def get_price(file, fname):
+            price = 0.0
+            if doc_type(fname) in ('fac', 'nc') and doc_extension(fname) == "xml":
+                file = StringIO(file)
+                file = StringIO(unescape(file.getvalue()))
+                parser = etree.XMLParser(recover=True)
+                tree = etree.parse(file, parser)
+                file = tree.find('//comprobante').text
+                tree = etree.parse(StringIO(file))
+                price = float(tree.find('//totalSinImpuestos').text) or 0.0
+            return price
+
         def get_file(path, filename):
             """
             Get file from ftp server
@@ -134,22 +265,11 @@ class mail_message(osv.Model):
             ftp.quit()
             f = open(filename[0])
             file = f.read()
-            file64 = file
             f.close()
-
-            price = 0.0
-            if doc_type(filename[0]) in ('fac', 'nc') and doc_extension(filename[0]) == "xml":
-                xml = StringIO(file)
-                xml = StringIO(unescape(xml.getvalue()))
-                parser = etree.XMLParser(recover=True)
-                tree = etree.parse(xml, parser)
-                document = tree.find('//comprobante').text
-                tree = etree.parse(StringIO(document))
-                price = float(tree.find('//totalSinImpuestos').text) or 0.0
-
-            file64 = base64.b64encode(file64)
+            price = get_price(file, filename[0])
+            file = base64.b64encode(file)
             document_vals = {'name': filename[0],
-                             'datas': file64,
+                             'datas': file,
                              'datas_fname': filename[0],
                              'type': 'binary',
                              'res_model': 'mail.message'
@@ -206,12 +326,12 @@ class mail_message(osv.Model):
                 for file in files:
                     path = file[1].split('\\')[4]
                     attach_id = None
-                    #try:
-                    attach_id, ret_price = get_file(path, file)
-                    if ret_price:
-                        price = ret_price
-                    #except:
-                    #    continue
+                    try:
+                        attach_id, ret_price = get_file(path, file)
+                        if ret_price:
+                            price = ret_price
+                    except:
+                        continue
                     if attach_id:
                         attach_ids.append(attach_id)
                         history_log_ids.append(file[2])
