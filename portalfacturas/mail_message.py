@@ -46,7 +46,7 @@ class mail_message(osv.Model):
                                    ('archive', 'Archivado')], 'Estado'),
     }
 
-    _defaults = [('state', '=', 'to_read')]
+    _defaults = {'state': 'to_read'}
 
     def check_access_rule(self, cr, uid, ids, operation, context=None):
         """ Access rules of mail.message:

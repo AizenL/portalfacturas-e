@@ -37,7 +37,8 @@ Portal para facturas electronicas.
         'views/ftp_view.xml',
         'views/mail_message_view.xml',
         'views/webclient_templates.xml',
-        'views/portal_view.xml'
+        'views/portal_view.xml',
+        'security/ir.model.access.csv',
     ],
     'qweb' : [],
     'demo': [],
