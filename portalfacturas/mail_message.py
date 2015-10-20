@@ -117,26 +117,6 @@ class mail_message(osv.Model):
             """
             return filename.split('.')[1]
 
-        def get_price(file, name):
-            """
-            Get price from xml
-            :param xml: xml file
-            :param name: name of xml file
-            :return: float(price)
-            """
-            res = 0.0
-            if doc_type(name) in ('fac', 'nc') and doc_extension(name) == "xml":
-                file = StringIO(file)
-                print file.getvalue()
-                print name
-                print file
-                tree = etree.parse(file)
-                document = tree.find('//comprobante').text
-                document = StringIO(unescape(document.getvalue()))
-                tree = etree.parse(StringIO(document))
-                res = float(tree.find('//totalSinImpuestos').text)
-            return res
-
         def get_file(path, filename):
             """
             Get file from ftp server
@@ -152,11 +132,22 @@ class mail_message(osv.Model):
             except:
                 return 0
             ftp.quit()
-            f = open(filename[0], 'r')
+            f = open(filename[0])
             file = f.read()
+            file64 = file
             f.close()
-            price = get_price(file, filename[0])
-            file64 = base64.b64encode(file)
+
+            price = 0.0
+            if doc_type(filename[0]) in ('fac', 'nc') and doc_extension(filename[0]) == "xml":
+                xml = StringIO(file)
+                xml = StringIO(unescape(xml.getvalue()))
+                parser = etree.XMLParser(recover=True)
+                tree = etree.parse(xml, parser)
+                document = tree.find('//comprobante').text
+                tree = etree.parse(StringIO(document))
+                price = float(tree.find('//totalSinImpuestos').text) or 0.0
+
+            file64 = base64.b64encode(file64)
             document_vals = {'name': filename[0],
                              'datas': file64,
                              'datas_fname': filename[0],
