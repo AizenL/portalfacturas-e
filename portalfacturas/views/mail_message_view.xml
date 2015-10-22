@@ -8,7 +8,8 @@
             <field name="priority">25</field>
             <field name="arch" type="xml">
                 <search string="Messages Search">
-                    <field name="body" string="Content" filter_domain="['|', ('subject', 'ilike', self), ('body', 'ilike', self)]" />
+                    <field name="doc_name" string="Nombre" filter_domain="[('name', 'ilike', self)]" />
+                    <field name="sustento" string="Sustento" filter_domain="[('sustento', 'ilike', self)]" />
                     <field name="date" string="Fecha mayor que" filter_domain="[('date', '&gt;', self)]" />
                     <field name="date" string="Fecha menor que" filter_domain="[('date', '&lt;', self)]" />
                     <filter string="Facturas"
@@ -26,6 +27,8 @@
                     <separator/>
                     <group expand="0" string="Agrupar por">
                         <filter string="Tipo de documento" name="doc_type" domain="[]" context="{'group_by':'doc_type'}"/>
+                        <filter string="Fecha" name="date" domain="[]" context="{'group_by':'date'}"/>
+
                     </group>
                 </search>
             </field>

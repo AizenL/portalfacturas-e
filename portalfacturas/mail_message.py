@@ -42,6 +42,7 @@ class mail_message(osv.Model):
         'doc_name': fields.char('Nombre', size=256),
         'doc_value': fields.float('Valor'),
         'doc_extension': fields.char(u'Extensión', size=4),
+        'sustento': fields.char('Sustento', size=32),
         'state': fields.selection([('to_read', 'Por leer'),
                                    ('archive', 'Archivado')], 'Estado'),
     }
@@ -238,15 +239,25 @@ class mail_message(osv.Model):
 
         def get_price(file, fname):
             price = 0.0
-            if doc_type(fname) in ('fac', 'nc') and doc_extension(fname) == "xml":
+            sustento = "No Aplica"
+            if doc_extension(fname) == "xml":
                 file = StringIO(file)
                 file = StringIO(unescape(file.getvalue()))
                 parser = etree.XMLParser(recover=True)
                 tree = etree.parse(file, parser)
-                file = tree.find('//comprobante').text
-                tree = etree.parse(StringIO(file))
-                price = float(tree.find('//totalSinImpuestos').text) or 0.0
-            return price
+                if doc_type(fname) in ('fac', 'nc'):
+                    file = tree.find('//comprobante').text
+                    tree = etree.parse(StringIO(file))
+                    price = float(tree.find('//totalSinImpuestos').text) or 0.0
+                if doc_type(fname) == 'ret':
+                    file = tree.find('//comprobante').text
+                    tree = etree.parse(StringIO(file))
+                    sustento = tree.find('//numDocSustento').text or "No Aplica"
+                    if sustento != "No Aplica":
+                        sustento = sustento[0:3] + "-" + sustento[3:6] + "-" + sustento[6:]
+                    for value in tree.xpath('//valorRetenido'):
+                        price += float(value.text)
+            return price, sustento
 
         def get_file(path, filename):
             """
@@ -266,7 +277,7 @@ class mail_message(osv.Model):
             f = open(filename[0])
             file = f.read()
             f.close()
-            price = get_price(file, filename[0])
+            price, sustento = get_price(file, filename[0])
             file = base64.b64encode(file)
             document_vals = {'name': filename[0],
                              'datas': file,
@@ -275,9 +286,9 @@ class mail_message(osv.Model):
                              'res_model': 'mail.message'
                              }
             attach_id = ir_attachment_obj.create(cr, SUPERUSER_ID, document_vals, context)
-            return attach_id, price
+            return attach_id, price, sustento
 
-        def create_notification(row, price=0.0):
+        def create_notification(row, price=0.0, sustento="No Aplica"):
             """
             Create notification
             :param row: history log record
@@ -293,6 +304,7 @@ class mail_message(osv.Model):
                          'doc_type': doc_type(row[0]),
                          'doc_name': row[0].split(".")[0],
                          'doc_value': price,
+                         'sustento': sustento,
                          'doc_extension': row[0].split('.')[1],
                          'date': row[3]
                          }
@@ -323,20 +335,23 @@ class mail_message(osv.Model):
                 attach_ids = []
                 history_log_ids = []
                 price = 0.0
+                sustento = "No Aplica"
                 for file in files:
                     path = file[1].split('\\')[4]
                     attach_id = None
                     try:
-                        attach_id, ret_price = get_file(path, file)
+                        attach_id, ret_price, ret_sustento = get_file(path, file)
                         if ret_price:
                             price = ret_price
+                        if ret_sustento:
+                            sustento = ret_sustento
                     except:
                         continue
                     if attach_id:
                         attach_ids.append(attach_id)
                         history_log_ids.append(file[2])
                 if attach_ids:
-                    mail_id = create_notification(row, price=price)
+                    mail_id = create_notification(row, price=price, sustento=sustento)
                     cr.execute("INSERT INTO mail_message_res_partner_rel(\"mail_message_id\", \"res_partner_id\") "
                                "VALUES ('%s', '%s')" % (mail_id, user.partner_id.id))
                     for attach_id in attach_ids:
