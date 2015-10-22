@@ -164,6 +164,36 @@ class mail_message(osv.Model):
                 self.write(cr, uid, record['id'], {'state': 'to_read'})
         return True
 
+    def download_xml(self, cr, uid, ids, context=None):
+        res = {}
+        attachment_obj = self.pool.get('ir.attachment')
+        for record in self.read(cr, uid, ids, ['attachment_ids']):
+            for id in record['attachment_ids']:
+                for attach in attachment_obj.read(cr, uid, id, ['name']):
+                    print attach['name'].split('.')[1]
+                    if attach['name'].split('.')[1] == 'xml':
+                        return {
+                            "type": "ir.actions.act_url",
+                            "url": "http://localhost:8069/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s" % id,
+                            "target": "self",
+                        }
+        return res
+
+    def download_pdf(self, cr, uid, ids, context=None):
+        res = {}
+        attachment_obj = self.pool.get('ir.attachment')
+        for record in self.read(cr, uid, ids, ['attachment_ids']):
+            for id in record['attachment_ids']:
+                for attach in attachment_obj.read(cr, uid, id, ['name']):
+                    print attach['name'].split('.')[1]
+                    if attach['name'].split('.')[1] == 'pdf':
+                        return {
+                            "type": "ir.actions.act_url",
+                            "url": "http://localhost:8069/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s" % id,
+                            "target": "self",
+                        }
+        return res
+
     def mime_type(self, file):
         ext = file.split('.')[1]
         if ext == "pdf":
