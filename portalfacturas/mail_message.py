@@ -317,7 +317,7 @@ class mail_message(osv.Model):
             attach_id = ir_attachment_obj.create(cr, SUPERUSER_ID, document_vals, context)
             return attach_id, price, sustento
 
-        def create_notification(row, price=0.0, sustento="No Aplica"):
+        def create_notification(row, uid, price=0.0, sustento="No Aplica"):
             """
             Create notification
             :param row: history log record
@@ -327,7 +327,7 @@ class mail_message(osv.Model):
             doc_name = row[0].replace('_', '-')
             mail_vals = {'subject': 'Nuevo documento %s' % doc_name,
                          'body': 'Un nuevo documento esta disponible',
-                         'author_id': 1,
+                         'author_id': uid,
                          'type': 'notification',
                          'subtype_id': 1,
                          'doc_type': doc_type(row[0]),
@@ -380,7 +380,7 @@ class mail_message(osv.Model):
                         attach_ids.append(attach_id)
                         history_log_ids.append(file[2])
                 if attach_ids:
-                    mail_id = create_notification(row, price=price, sustento=sustento)
+                    mail_id = create_notification(row, uid, price=price, sustento=sustento)
                     cr.execute("INSERT INTO mail_message_res_partner_rel(\"mail_message_id\", \"res_partner_id\") "
                                "VALUES ('%s', '%s')" % (mail_id, user.partner_id.id))
                     for attach_id in attach_ids:
