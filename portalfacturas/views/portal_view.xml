@@ -47,6 +47,9 @@
                         <field name="sustento" attrs="{'invisible':[('doc_type','!=','ret')]}"/>
                         <field name="date" readonly="1" required="1"/>
                         <field name="doc_type" readonly="1" required="1"/>
+
+                        <button name="download_xml" type="object" string="XML"/>
+                        <button name="download_pdf" type="object" string="PDF"/>
                         <separator string="Archivos" colspan="4"/>
                         <field name="attachment_ids" colspan="4" readonly="1" nolabel="1" mode="tree,form">
                             <tree>

@@ -165,7 +165,6 @@ class mail_message(osv.Model):
         return True
 
     def download_xml(self, cr, uid, ids, context=None):
-        res = {}
         attachment_obj = self.pool.get('ir.attachment')
         for record in self.read(cr, uid, ids, ['attachment_ids']):
             for id in record['attachment_ids']:
@@ -175,12 +174,11 @@ class mail_message(osv.Model):
                         return {
                             "type": "ir.actions.act_url",
                             "url": "http://localhost:8069/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s" % id,
-                            "target": "self",
+                            "target": "new",
                         }
-        return res
+        raise osv.except_osv('Error', 'Archivo no disponible!')
 
     def download_pdf(self, cr, uid, ids, context=None):
-        res = {}
         attachment_obj = self.pool.get('ir.attachment')
         for record in self.read(cr, uid, ids, ['attachment_ids']):
             for id in record['attachment_ids']:
@@ -190,9 +188,10 @@ class mail_message(osv.Model):
                         return {
                             "type": "ir.actions.act_url",
                             "url": "http://localhost:8069/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s" % id,
-                            "target": "self",
+                            "target": "new",
                         }
-        return res
+
+        raise osv.except_osv('Error', 'Archivo no disponible!')
 
     def mime_type(self, file):
         ext = file.split('.')[1]

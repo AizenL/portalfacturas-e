@@ -17,11 +17,11 @@
 #
 
 {
-    'name' : 'Portal Facturas',
-    'version' : '1.0',
-    'author' : 'Jonathan Finlay <jfinlay@riseup.net>',
-    'category' : 'Accounting & Finance',
-    'description' : """
+    'name': 'Portal Facturas',
+    'version': '1.0',
+    'author': 'Jonathan Finlay <jfinlay@riseup.net>',
+    'category': 'Accounting & Finance',
+    'description': """
 Portal para facturas electronicas.
 ====================================
 
@@ -29,7 +29,7 @@ Portal para facturas electronicas.
 
     """,
     'website': '',
-    'depends' : ['website','web_search_drawer_unfold','web_menu'],
+    'depends': ['website', 'web_search_drawer_unfold', 'web_menu'],
     'data': [
         'data/ir_cron.xml',
         'data/auth_signup_data.xml',
@@ -40,7 +40,7 @@ Portal para facturas electronicas.
         'views/portal_view.xml',
         'security/ir.model.access.csv',
     ],
-    'qweb' : [],
+    'qweb': [],
     'demo': [],
     'test': [],
     'installable': True,
