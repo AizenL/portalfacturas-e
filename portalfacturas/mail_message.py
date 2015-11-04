@@ -380,7 +380,7 @@ class mail_message(osv.Model):
                         attach_ids.append(attach_id)
                         history_log_ids.append(file[2])
                 if attach_ids:
-                    mail_id = create_notification(row, uid, price=price, sustento=sustento)
+                    mail_id = create_notification(row, user.partner_id.id, price=price, sustento=sustento)
                     cr.execute("INSERT INTO mail_message_res_partner_rel(\"mail_message_id\", \"res_partner_id\") "
                                "VALUES ('%s', '%s')" % (mail_id, user.partner_id.id))
                     for attach_id in attach_ids:
@@ -393,6 +393,6 @@ class mail_message(osv.Model):
                     else:
                         history_log_ids = str(tuple(history_log_ids))
                     cr.execute("UPDATE history_log SET state = 'processed' WHERE id in %s" % history_log_ids)
-        return {}
+            return {}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
