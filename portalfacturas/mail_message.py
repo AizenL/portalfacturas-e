@@ -173,7 +173,7 @@ class mail_message(osv.Model):
                     if attach['name'].split('.')[1] == 'xml':
                         return {
                             "type": "ir.actions.act_url",
-                            "url": "http://localhost:8069/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s" % id,
+                            "url": "https://facturacion.dimabru.com.ec/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s" % id,
                             "target": "new",
                         }
         raise osv.except_osv('Error', 'Archivo no disponible!')
@@ -187,7 +187,7 @@ class mail_message(osv.Model):
                     if attach['name'].split('.')[1] == 'pdf':
                         return {
                             "type": "ir.actions.act_url",
-                            "url": "http://localhost:8069/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s" % id,
+                            "url": "https://facturacion.dimabru.com.ec/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s" % id,
                             "target": "new",
                         }
 
