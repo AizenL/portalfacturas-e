@@ -217,11 +217,15 @@ class mail_message(osv.Model):
         file = open('log.txt', 'r')
         ftp.quit()
         for line in file.readlines():
+            try:
+                line.encode('utf-8')
+            except:
+                continue
             line.replace('\n', '')
             line = line.split('\t')
-            if len(line) != 4:
+            if len(line) != 3:
                 continue
-            vals = {'name': line[0], 'path': line[1], 'date': line[2].replace('\n', ''), 'value': line[3]}
+            vals = {'name': line[0], 'path': line[1], 'date': line[2].replace('\n', '')}
             confirm_query = "select name from history_log WHERE name = '%s'"
             cr.execute(confirm_query % (vals['name']))
             if cr.fetchone():
